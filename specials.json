@@ -1,0 +1,20 @@
+[
+  {"id":"ruguan","name":"入关学","desc":"你认为中国应当打破现有国际秩序，重新分配全球权力和资源。你的观点带有鲜明的入关学色彩。","axis":"diplomatic","min":70,"dir":"nation"},
+  {"id":"tese","name":"中国特色社会主义","desc":"你对现行中国发展道路有高度认同，相信这是最适合国情的制度安排。","axis":"econ","min":50,"dir":"equality"},
+  {"id":"mao","name":"毛派情怀","desc":"你对毛泽东时代的革命理想和群众路线有深刻的共鸣和认可。","axis":"state","min":75,"dir":"authority"},
+  {"id":"minzu","name":"民族主义者","desc":"你具有强烈的民族自豪感，将国家利益和民族尊严置于首要位置。","axis":"diplomatic","min":60,"dir":"nation"},
+  {"id":"quanqiu","name":"全球主义者","desc":"你是坚定的世界主义者，认为人类应当超越国界和民族差异走向联合。","axis":"diplomatic","min":-60,"dir":"globe"},
+  {"id":"ziyou","name":"自由至上者","desc":"你极度警惕国家权力扩张，将个人自由视为不可侵犯的最高价值。","axis":"state","min":-70,"dir":"liberty"},
+  {"id":"weiquan","name":"秩序至上者","desc":"你认为强有力的社会控制和明确的权威体系是文明运转的基本前提。","axis":"state","min":70,"dir":"authority"},
+  {"id":"baoshou","name":"传统守护者","desc":"你坚定维护传统道德和文化遗产，对激进的社会变革持深刻的怀疑态度。","axis":"society","min":65,"dir":"tradition"},
+  {"id":"jinbu","name":"激进进步派","desc":"你相信社会必须不断打破陈旧枷锁，拥抱一切前沿的文化和制度变革。","axis":"society","min":-65,"dir":"progress"},
+  {"id":"jiasu","name":"加速主义者","desc":"你认为应当主动推动科技和社会的加速变革，哪怕这需要打破现有的稳定。","axis":"society","min":-75,"dir":"progress"},
+  {"id":"techkong","name":"科技保守派","desc":"你认为技术发展过快正在撕裂社会，必须优先考虑科技伦理和社会稳定。","axis":"tech","min":65,"dir":"control"},
+  {"id":"techjin","name":"技术加速派","desc":"你相信科技进步是解决人类一切问题的钥匙，应当全力推进技术创新。","axis":"tech","min":-65,"dir":"acceleration"},
+  {"id":"zijue","name":"政治冷感","desc":"你对于政治意识形态的争论没有太多兴趣，更关注自己的日常生活。","type":"all","min":-25,"max":25},
+  {"id":"wuzhengfu","name":"反国家主义者","desc":"你从根本上质疑国家存在的正当性，认为人类不需要自上而下的强制统治。","axis":"state","min":-80,"dir":"liberty"},
+  {"id":"huanbao","name":"绿色卫士","desc":"你将生态保护置于经济发展之上，认为人类必须与自然和谐共生。","axis":"society","min":-60,"dir":"progress"},
+  {"id":"shehuidada","name":"社会达尔文主义者","desc":"你认为人类社会应当遵循自然选择的法则，强者生存是天经地义的。","axis":"society","min":75,"dir":"tradition"},
+  {"id":"pingdeng","name":"平等斗士","desc":"你将社会平等视为最高价值，坚信财富和资源应当更加公平地分配。","axis":"econ","min":70,"dir":"equality"},
+  {"id":"shichang","name":"市场原教旨主义者","desc":"你是自由市场的坚定信徒，认为减少一切政府干预才能实现真正的繁荣。","axis":"econ","min":-70,"dir":"market"}
+]

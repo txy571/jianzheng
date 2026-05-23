@@ -151,8 +151,11 @@
         <p id="match-desc" class="text-sm md:text-base text-gray-300 max-w-2xl mx-auto leading-relaxed"></p>
       </div>
 
+      <!-- Special traits -->
+      <div id="specials-area" class="mb-6"></div>
+
       <!-- Axis scores -->
-      <div id="axis-scores" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6"></div>
+      <div id="axis-scores" class="space-y-3 mb-6"></div>
 
       <!-- Top 3 -->
       <div id="top3" class="text-center mb-8">
@@ -179,6 +182,7 @@
     const state = {
       questions: [],
       ideologies: [],
+      specials: [],
       currentIdx: 0,
       scores: { econ: 0, diplomatic: 0, state: 0, society: 0, tech: 0 },
       maxScores: { econ: 0, diplomatic: 0, state: 0, society: 0, tech: 0 },
@@ -273,12 +277,14 @@
     // ==============================
     async function loadData() {
       try {
-        const [qRes, iRes] = await Promise.all([
+        const [qRes, iRes, sRes] = await Promise.all([
           fetch('questions.json'),
-          fetch('ideologies.json')
+          fetch('ideologies.json'),
+          fetch('specials.json')
         ]);
         state.questions = await qRes.json();
         state.ideologies = await iRes.json();
+        state.specials = await sRes.json();
         state.totalQuestions = state.questions.length;
         document.getElementById('total-q-label').textContent = state.totalQuestions;
 
@@ -476,6 +482,23 @@
       });
     }
 
+    function findSpecials(norm) {
+      if (!state.specials || state.specials.length === 0) return [];
+      return state.specials.filter(sp => {
+        if (sp.type === 'all') {
+          return AXES.every(a => norm[a] >= sp.min && norm[a] <= sp.max);
+        }
+        const val = norm[sp.axis];
+        if (sp.dir === 'nation' || sp.dir === 'authority' || sp.dir === 'tradition' || sp.dir === 'control' || sp.dir === 'equality') {
+          return val >= sp.min;
+        }
+        if (sp.dir === 'globe' || sp.dir === 'liberty' || sp.dir === 'progress' || sp.dir === 'acceleration' || sp.dir === 'market') {
+          return val <= sp.min;
+        }
+        return false;
+      });
+    }
+
     function showResults() {
       const norm = normalizeScores(state.scores);
 
@@ -504,9 +527,25 @@
       }
 
       document.getElementById('match-name-en').textContent = best.nameEn || '';
-      document.getElementById('match-desc').textContent = best.description || '';
+      document.getElementById('match-desc').textContent = best.intro || best.description || '';
 
-      // Axis score cards
+      // Special traits
+      const specialsArea = document.getElementById('specials-area');
+      const triggered = findSpecials(norm);
+      if (triggered.length > 0) {
+        specialsArea.innerHTML = `
+          <h4 class="text-sm font-mono text-[#8888aa] mb-3 tracking-widest text-center">▎特质标签 ▎</h4>
+          <div class="flex flex-wrap justify-center gap-3">${triggered.map(s =>
+            `<div class="bg-[#1a1a3e] border-2 border-black px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" title="${s.desc}">
+              <span class="text-[#ffd700] font-bold text-sm">${s.name}</span>
+            </div>`
+          ).join('')}</div>
+        `;
+      } else {
+        specialsArea.innerHTML = '';
+      }
+
+      // Axis score cards — dual-label progress bars
       const axisDisplay = {
         econ: { label: '经济', hi: '平等', lo: '市场' },
         diplomatic: { label: '外交', hi: '国家', lo: '全球' },
@@ -519,18 +558,28 @@
       for (const [key, info] of Object.entries(axisDisplay)) {
         const val = norm[key];
         const pct = (val + 100) / 2;
-        const isPos = val >= 0;
-        const color = isPos ? '#ff2a75' : '#00d4ff';
+        const isHi = val >= 0;
+        const barColor = isHi ? '#ff2a75' : '#00d4ff';
+        const valColor = isHi ? '#ff2a75' : '#00d4ff';
         const div = document.createElement('div');
-        div.className = 'bg-[#1a1a3e] border-[3px] border-black p-4 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
+        div.className = 'bg-[#1a1a3e] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
         div.innerHTML = `
-          <div class="text-xs font-mono text-[#8888aa] mb-1">${info.label}</div>
-          <div class="text-2xl font-black mb-1" style="color:${color}">${val >= 0 ? '+' : ''}${val}</div>
-          <div class="flex justify-between text-[10px] font-mono text-[#555577] mb-1">
-            <span>${info.lo}</span><span>${info.hi}</span>
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-xs font-mono text-[#555577]">${info.lo}</span>
+            <span class="text-xs font-mono text-[#8888aa] font-bold tracking-wider">${info.label}</span>
+            <span class="text-xs font-mono text-[#555577]">${info.hi}</span>
           </div>
-          <div class="w-full h-[5px] bg-[#0f0c29] border border-black">
-            <div class="h-full transition-all duration-1000" style="width:${pct}%;background:${isPos ? '#ff2a75' : '#00d4ff'}"></div>
+          <div class="relative w-full h-3 bg-[#0f0c29] border border-black overflow-hidden">
+            <div class="absolute top-0 h-full transition-all duration-1000"
+                 style="left:0;width:${pct}%;background:${barColor};border-right:2px solid #fff;"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <span class="text-xs font-black drop-shadow-lg" style="color:${valColor}">
+                ${val >= 0 ? '+' : ''}${val}
+              </span>
+            </div>
+          </div>
+          <div class="flex justify-between text-[10px] font-mono text-[#555577] mt-1">
+            <span>0</span><span>50</span><span>100</span>
           </div>
         `;
         container.appendChild(div);
