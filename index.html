@@ -379,6 +379,12 @@
         state.answered[q.id] = multiplier;
         for (const a of AXES) state.scores[a] += q.weights[a] * multiplier;
         renderQuestion(state.currentIdx);
+        // Auto-advance after short delay
+        if (state.currentIdx < state.totalQuestions - 1) {
+          setTimeout(goToNext, 400);
+        } else {
+          setTimeout(goToNext, 600);
+        }
       });
     });
 
