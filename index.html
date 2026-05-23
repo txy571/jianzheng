@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>意识形态测试 · 5维政治坐标</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0f0c29; color: #fff; overflow-x: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
+    .page { position: fixed; inset: 0; display: none; z-index: 10; flex-direction: column; opacity: 0; transition: opacity 0.4s ease; }
+    .page.active { display: flex; opacity: 1; }
+    #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    #scan-overlay { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.08; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.4) 2px, rgba(0,0,0,0.4) 4px); }
+
+    /* Glitch */
+    @keyframes glitch { 0% { transform: translate(0); text-shadow: none; } 20% { transform: translate(-2px, 2px); text-shadow: 3px 0 #ff2a75, -3px 0 #00d4ff; } 40% { transform: translate(2px, -1px); text-shadow: -3px 0 #ff2a75, 3px 0 #00d4ff; } 60% { transform: translate(-1px, 1px); text-shadow: 2px 0 #39ff14, -2px 0 #ff0040; } 80% { transform: translate(1px, -2px); text-shadow: -2px 0 #ff2a75, 2px 0 #00d4ff; } 100% { transform: translate(0); text-shadow: none; } }
+    .glitch { animation: glitch 0.3s ease; }
+
+    /* Fault transitions */
+    @keyframes faultOut { 0% { transform: translateX(0); opacity: 1; clip-path: inset(0); } 50% { transform: translateX(12px); opacity: 0.6; clip-path: inset(15% 0 40% 0); } 100% { transform: translateX(-60px); opacity: 0; clip-path: inset(60% 0 0 0); } }
+    @keyframes faultIn { 0% { transform: translateX(60px); opacity: 0; clip-path: inset(0 0 60% 0); } 50% { transform: translateX(-12px); opacity: 0.6; clip-path: inset(40% 0 15% 0); } 100% { transform: translateX(0); opacity: 1; clip-path: inset(0); } }
+    .fault-out { animation: faultOut 0.35s ease forwards; }
+    .fault-in { animation: faultIn 0.35s ease forwards; }
+
+    /* Likert buttons */
+    .likert-btn { @apply text-white font-bold py-3 px-2 border-2 border-black text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 hover:-translate-y-0.5 hover:-translate-x-0.5 active:translate-y-0.5 active:translate-x-0.5 active:shadow-none; }
+
+    /* Pulse glow for progress */
+    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 5px #ffd700; } 50% { box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd70055; } }
+    .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
+
+    /* Typewriter cursor */
+    .typewriter::after { content: '|'; animation: blink 1s step-end infinite; color: #ff2a75; }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    /* Scan line flicker on home */
+    @keyframes flicker { 0%,100% { opacity: 1; } 50% { opacity: 0.97; } }
+    .flicker { animation: flicker 0.15s infinite; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f0c29; }
+    ::-webkit-scrollbar-thumb { background: #ff2a75; border: 1px solid #000; }
+  </style>
+</head>
+<body>
+  <!-- Canvas Background -->
+  <canvas id="bg-canvas"></canvas>
+  <div id="scan-overlay"></div>
+
+  <!-- Page 1: Home -->
+  <div id="page-home" class="page active flicker">
+    <div class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
+      <div class="relative inline-block mb-4">
+        <div class="absolute -inset-2 bg-gradient-to-r from-[#ff2a75] to-[#00d4ff] opacity-30 blur-xl"></div>
+        <h1 id="glitch-title" class="relative text-6xl md:text-8xl font-black tracking-tighter leading-none"
+            style="text-shadow: 3px 3px 0 #000;" data-text="意识形态测试">
+          意识形态测试
+        </h1>
+      </div>
+      <div class="w-24 h-1 bg-[#ff2a75] mb-6"></div>
+      <p class="text-lg md:text-xl text-[#8888aa] mb-2 font-mono tracking-wider">
+        100 题 · 5 维坐标 · 精准政治光谱定位
+      </p>
+      <p class="text-sm text-[#666688] mb-10 font-mono">
+        经济 · 外交 · 国家机构 · 社会文化 · 科技
+      </p>
+      <button id="btn-start"
+        class="bg-[#ff2a75] text-white text-2xl font-black py-4 px-14 border-[3px] border-black
+               shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]
+               hover:-translate-y-1 hover:-translate-x-1 transition-all duration-200
+               active:translate-y-1 active:translate-x-1 active:shadow-none tracking-wider">
+        开 始 测 试
+      </button>
+      <p class="mt-10 text-xs text-[#555577] max-w-md font-mono leading-relaxed">
+        本测试包含可能具有冒犯性的政治观点表述。<br>
+        请根据你的「应然」判断作答，而非「实然」现状。
+      </p>
+    </div>
+  </div>
+
+  <!-- Page 2: Quiz -->
+  <div id="page-quiz" class="page">
+    <div class="relative z-10 w-full pt-6 px-6 md:px-10">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between text-sm text-[#8888aa] font-mono mb-2">
+          <span id="progress-label">1 / <span id="total-q-label">145</span></span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="w-full h-[6px] bg-[#1a1a3e] border-2 border-black">
+          <div id="progress-bar" class="h-full bg-[#ffd700] transition-all duration-300 pulse-glow" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative z-10 flex-1 flex items-center justify-center px-6 py-6">
+      <div class="w-full max-w-3xl">
+        <div id="question-card" class="bg-[#1a1a3e] border-[3px] border-black p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+          <div class="flex justify-between items-center mb-6">
+            <span id="q-number" class="text-[#ff2a75] font-mono text-sm font-bold">01 / 145</span>
+            <span id="q-axis" class="text-[#8888aa] font-mono text-xs border border-[#8888aa] px-2 py-1">经济轴</span>
+          </div>
+          <p id="q-text" class="text-xl md:text-2xl font-bold leading-relaxed mb-8 min-h-[80px]">
+            加载题目中...
+          </p>
+          <div class="grid grid-cols-5 gap-2 md:gap-3" id="likert-buttons">
+            <button class="likert-btn bg-[#ff0040] hover:bg-[#d40035]" data-value="1">非常同意</button>
+            <button class="likert-btn bg-[#ff6640] hover:bg-[#d45535]" data-value="0.5">同意</button>
+            <button class="likert-btn bg-[#666688] hover:bg-[#555577]" data-value="0">中立</button>
+            <button class="likert-btn bg-[#40aaff] hover:bg-[#3590d5]" data-value="-0.5">不同意</button>
+            <button class="likert-btn bg-[#0040ff] hover:bg-[#0035d5]" data-value="-1">非常不同意</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative z-10 w-full pb-6 px-6 md:px-10">
+      <div class="max-w-3xl mx-auto flex justify-between">
+        <button id="btn-prev" class="font-mono text-[#8888aa] hover:text-white transition-colors px-4 py-2 border border-[#8888aa] text-sm"
+                style="visibility:hidden">
+          ← 上一题
+        </button>
+        <button id="btn-next"
+          class="font-mono text-white bg-[#00d4ff] px-6 py-2 border-2 border-black text-sm font-bold
+                 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)]
+                 hover:-translate-y-0.5 hover:-translate-x-0.5 transition-all active:translate-y-0.5 active:translate-x-0.5 active:shadow-none">
+          下一题 →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page 3: Results -->
+  <div id="page-results" class="page" style="overflow-y:auto">
+    <div class="relative z-10 w-full max-w-5xl mx-auto px-6 py-10">
+      <h2 class="text-4xl md:text-5xl font-black text-center mb-2">你的政治坐标</h2>
+      <p class="text-center text-[#8888aa] font-mono text-sm mb-8">5 维政治光谱分析报告</p>
+
+      <!-- Radar chart -->
+      <div class="bg-[#1a1a3e] border-[3px] border-black p-4 md:p-8 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <canvas id="radar-chart" class="max-h-[450px] w-full"></canvas>
+      </div>
+
+      <!-- Best match -->
+      <div id="match-card" class="bg-[#1a1a3e] border-[3px] border-black p-8 mb-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center">
+        <p class="text-sm font-mono text-[#8888aa] mb-2 tracking-widest">▎最佳匹配 ▎</p>
+        <h3 id="match-name" class="text-3xl md:text-5xl font-black text-[#ff2a75] mb-1 glitch-ready"></h3>
+        <p id="match-name-en" class="text-lg font-mono text-[#00d4ff] mb-4 italic"></p>
+        <p id="match-desc" class="text-sm md:text-base text-gray-300 max-w-2xl mx-auto leading-relaxed"></p>
+      </div>
+
+      <!-- Axis scores -->
+      <div id="axis-scores" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6"></div>
+
+      <!-- Top 3 -->
+      <div id="top3" class="text-center mb-8">
+        <h4 class="text-sm font-mono text-[#8888aa] mb-3 tracking-widest">▎其他接近匹配 ▎</h4>
+        <div class="flex flex-wrap justify-center gap-3" id="top3-list"></div>
+      </div>
+
+      <!-- Restart -->
+      <div class="text-center pb-10">
+        <button id="btn-restart"
+          class="bg-[#ffd700] text-black font-black py-3 px-10 border-[3px] border-black text-lg
+                 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:shadow-[9px_9px_0px_0px_rgba(0,0,0,1)]
+                 hover:-translate-y-1 hover:-translate-x-1 transition-all active:translate-y-1 active:translate-x-1 active:shadow-none">
+          重新测试
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==============================
+    // 0. STATE
+    // ==============================
+    const state = {
+      questions: [],
+      ideologies: [],
+      currentIdx: 0,
+      scores: { econ: 0, diplomatic: 0, state: 0, society: 0, tech: 0 },
+      maxScores: { econ: 0, diplomatic: 0, state: 0, society: 0, tech: 0 },
+      answered: {},
+      totalQuestions: 0,
+    };
+
+    let chartInstance = null;
+
+    // ==============================
+    // 1. CANVAS BACKGROUND
+    // ==============================
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const shapes = Array.from({ length: 15 }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+      size: 20 + Math.random() * 80,
+      type: Math.random() > 0.5 ? 'circle' : 'triangle',
+      hue: Math.random() * 360, rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.012,
+    }));
+    let mx = 0, my = 0;
+    window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    window.addEventListener('touchmove', e => { const t = e.touches[0]; mx = t.clientX; my = t.clientY; });
+
+    function drawBg() {
+      ctx.clearRect(0, 0, W, H);
+      const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+      grad.addColorStop(0, '#17103a');
+      grad.addColorStop(1, '#0f0c29');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+
+      const px = (mx / W - 0.5) * 15;
+      const py = (my / H - 0.5) * 15;
+      const t = Date.now() * 0.001;
+
+      for (const s of shapes) {
+        s.x += s.vx; s.y += s.vy; s.rot += s.rotSpeed;
+        if (s.x < -120) s.x = W + 120;
+        if (s.x > W + 120) s.x = -120;
+        if (s.y < -120) s.y = H + 120;
+        if (s.y > H + 120) s.y = -120;
+
+        ctx.save();
+        ctx.translate(s.x + px * 0.1, s.y + py * 0.1);
+        ctx.rotate(s.rot);
+        ctx.globalAlpha = 0.12 + 0.08 * Math.sin(t + s.hue * 0.01);
+        ctx.strokeStyle = `hsl(${(s.hue + t * 15) % 360}, 75%, 60%)`;
+        ctx.lineWidth = 1.5;
+
+        if (s.type === 'circle') {
+          ctx.beginPath();
+          ctx.arc(0, 0, s.size / 2, 0, Math.PI * 2);
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          for (let i = 0; i < 3; i++) {
+            const a = (Math.PI * 2 / 3) * i - Math.PI / 2;
+            const x = Math.cos(a) * s.size / 2;
+            const y = Math.sin(a) * s.size / 2;
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+      requestAnimationFrame(drawBg);
+    }
+    drawBg();
+
+    // ==============================
+    // 2. GLITCH EFFECT (periodic)
+    // ==============================
+    setInterval(() => {
+      const el = document.getElementById('glitch-title');
+      if (el && document.getElementById('page-home').classList.contains('active')) {
+        el.classList.add('glitch');
+        setTimeout(() => el.classList.remove('glitch'), 350);
+      }
+    }, 4000);
+
+    // ==============================
+    // 3. DATA LOADING
+    // ==============================
+    async function loadData() {
+      try {
+        const [qRes, iRes] = await Promise.all([
+          fetch('questions.json'),
+          fetch('ideologies.json')
+        ]);
+        state.questions = await qRes.json();
+        state.ideologies = await iRes.json();
+        state.totalQuestions = state.questions.length;
+        document.getElementById('total-q-label').textContent = state.totalQuestions;
+
+        for (const q of state.questions) {
+          for (const axis of ['econ', 'diplomatic', 'state', 'society', 'tech']) {
+            state.maxScores[axis] += Math.abs(q.weights[axis]);
+          }
+        }
+        renderQuestion(0);
+      } catch (e) {
+        document.getElementById('q-text').textContent = '数据加载失败，请检查网络连接后刷新页面。';
+      }
+    }
+
+    // ==============================
+    // 4. SCORING & NAVIGATION
+    // ==============================
+    const AXES = ['econ', 'diplomatic', 'state', 'society', 'tech'];
+    const AXIS_LABELS = {
+      econ: '经济轴', diplomatic: '外交轴', state: '国家机构轴', society: '社会文化轴', tech: '科技轴'
+    };
+
+    function getPrimaryAxis(q) {
+      let maxW = 0, maxA = 'econ';
+      for (const a of AXES) {
+        const w = Math.abs(q.weights[a]);
+        if (w > maxW) { maxW = w; maxA = a; }
+      }
+      return maxA;
+    }
+
+    function renderQuestion(index) {
+      const q = state.questions[index];
+      if (!q) return;
+      document.getElementById('q-number').textContent =
+        String(q.id).padStart(2, '0') + ' / ' + state.totalQuestions;
+      document.getElementById('q-text').textContent = q.text;
+      document.getElementById('q-axis').textContent = AXIS_LABELS[getPrimaryAxis(q)];
+
+      const pct = Math.min(100, Math.round(((q.id - 1) / state.totalQuestions) * 100));
+      document.getElementById('progress-label').firstChild.textContent = q.id + ' / ';
+      document.getElementById('progress-pct').textContent = pct + '%';
+      document.getElementById('progress-bar').style.width = pct + '%';
+
+      // Highlight selected
+      const prevVal = state.answered[q.id];
+      document.querySelectorAll('.likert-btn').forEach(btn => {
+        const v = parseFloat(btn.dataset.value);
+        btn.classList.toggle('ring-2', v === prevVal);
+        btn.classList.toggle('ring-[#ffd700]', v === prevVal);
+        btn.classList.toggle('ring-offset-2', v === prevVal);
+        btn.classList.toggle('ring-offset-[#1a1a3e]', v === prevVal);
+      });
+
+      // Nav visibility
+      document.getElementById('btn-prev').style.visibility = index === 0 ? 'hidden' : 'visible';
+      document.getElementById('btn-next').textContent =
+        index === state.totalQuestions - 1 ? '查看结果 →' : '下一题 →';
+    }
+
+    function goToNext() {
+      const q = state.questions[state.currentIdx];
+      if (state.answered[q.id] === undefined) return;
+
+      if (state.currentIdx < state.totalQuestions - 1) {
+        const card = document.getElementById('question-card');
+        card.classList.add('fault-out');
+        setTimeout(() => {
+          state.currentIdx++;
+          renderQuestion(state.currentIdx);
+          card.classList.remove('fault-out');
+          card.classList.add('fault-in');
+          setTimeout(() => card.classList.remove('fault-in'), 350);
+        }, 350);
+      } else {
+        showResults();
+      }
+    }
+
+    function goToPrev() {
+      if (state.currentIdx > 0) {
+        state.currentIdx--;
+        renderQuestion(state.currentIdx);
+      }
+    }
+
+    // ==============================
+    // 5. LIKERT HANDLERS
+    // ==============================
+    document.querySelectorAll('.likert-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const multiplier = parseFloat(btn.dataset.value);
+        const q = state.questions[state.currentIdx];
+        if (state.answered[q.id] !== undefined) {
+          const prev = state.answered[q.id];
+          for (const a of AXES) state.scores[a] -= q.weights[a] * prev;
+        }
+        state.answered[q.id] = multiplier;
+        for (const a of AXES) state.scores[a] += q.weights[a] * multiplier;
+        renderQuestion(state.currentIdx);
+      });
+    });
+
+    document.getElementById('btn-next').addEventListener('click', goToNext);
+    document.getElementById('btn-prev').addEventListener('click', goToPrev);
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Enter') {
+        if (document.getElementById('page-quiz').classList.contains('active')) goToNext();
+      }
+      if (e.key === 'ArrowLeft') {
+        if (document.getElementById('page-quiz').classList.contains('active')) goToPrev();
+      }
+      if (e.key >= '1' && e.key <= '5') {
+        if (document.getElementById('page-quiz').classList.contains('active')) {
+          const btns = document.querySelectorAll('.likert-btn');
+          const idx = parseInt(e.key) - 1;
+          if (btns[idx]) btns[idx].click();
+        }
+      }
+    });
+
+    // ==============================
+    // 6. RESULTS
+    // ==============================
+    function normalizeScores(raw) {
+      const norm = {};
+      for (const a of AXES) {
+        const m = state.maxScores[a];
+        norm[a] = m > 0 ? Math.round((raw[a] / m) * 100) : 0;
+      }
+      return norm;
+    }
+
+    function findMatches(norm) {
+      return state.ideologies.map(ideo => {
+        let distSq = 0;
+        for (const a of AXES) distSq += Math.pow(norm[a] - ideo.coords[a], 2);
+        return { ...ideo, distance: Math.sqrt(distSq) };
+      }).sort((a, b) => a.distance - b.distance);
+    }
+
+    function renderRadarChart(norm) {
+      const ctx = document.getElementById('radar-chart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      const labelMap = {
+        econ: { hi: '平等', lo: '市场' },
+        diplomatic: { hi: '国家', lo: '全球' },
+        state: { hi: '权威', lo: '自由' },
+        society: { hi: '传统', lo: '进步' },
+        tech: { hi: '技术控制', lo: '技术加速' },
+      };
+      const labels = AXES.map(a => `${labelMap[a].hi}\n${labelMap[a].lo}`);
+
+      chartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels,
+          datasets: [{
+            label: '你的政治坐标',
+            data: AXES.map(a => norm[a]),
+            backgroundColor: 'rgba(255,42,117,0.12)',
+            borderColor: '#ff2a75',
+            borderWidth: 3,
+            pointBackgroundColor: '#ff2a75',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          animation: { duration: 2000, easing: 'easeOutQuart' },
+          scales: {
+            r: {
+              min: -100, max: 100,
+              ticks: { stepSize: 50, color: '#8888aa', backdropColor: 'transparent', font: { family: 'monospace', size: 10 } },
+              grid: { color: 'rgba(136,136,170,0.2)' },
+              angleLines: { color: 'rgba(136,136,170,0.2)' },
+              pointLabels: { color: '#fff', font: { family: 'monospace', size: 11, weight: 'bold' } }
+            }
+          },
+          plugins: { legend: { display: false }, tooltip: { enabled: false } }
+        }
+      });
+    }
+
+    function showResults() {
+      const norm = normalizeScores(state.scores);
+
+      // Switch pages
+      document.getElementById('page-quiz').classList.remove('active');
+      document.getElementById('page-results').classList.add('active');
+
+      // Radar chart
+      renderRadarChart(norm);
+
+      // Matching
+      const matches = findMatches(norm);
+      const best = matches[0];
+
+      // Typewriter
+      const nameEl = document.getElementById('match-name');
+      nameEl.textContent = '';
+      let ci = 0;
+      const fullName = best.name;
+      if (fullName) {
+        const tw = setInterval(() => {
+          nameEl.textContent += fullName[ci];
+          ci++;
+          if (ci >= fullName.length) clearInterval(tw);
+        }, 70);
+      }
+
+      document.getElementById('match-name-en').textContent = best.nameEn || '';
+      document.getElementById('match-desc').textContent = best.description || '';
+
+      // Axis score cards
+      const axisDisplay = {
+        econ: { label: '经济', hi: '平等', lo: '市场' },
+        diplomatic: { label: '外交', hi: '国家', lo: '全球' },
+        state: { label: '国家机构', hi: '权威', lo: '自由' },
+        society: { label: '社会文化', hi: '传统', lo: '进步' },
+        tech: { label: '科技', hi: '技术控制', lo: '技术加速' },
+      };
+      const container = document.getElementById('axis-scores');
+      container.innerHTML = '';
+      for (const [key, info] of Object.entries(axisDisplay)) {
+        const val = norm[key];
+        const pct = (val + 100) / 2;
+        const isPos = val >= 0;
+        const color = isPos ? '#ff2a75' : '#00d4ff';
+        const div = document.createElement('div');
+        div.className = 'bg-[#1a1a3e] border-[3px] border-black p-4 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
+        div.innerHTML = `
+          <div class="text-xs font-mono text-[#8888aa] mb-1">${info.label}</div>
+          <div class="text-2xl font-black mb-1" style="color:${color}">${val >= 0 ? '+' : ''}${val}</div>
+          <div class="flex justify-between text-[10px] font-mono text-[#555577] mb-1">
+            <span>${info.lo}</span><span>${info.hi}</span>
+          </div>
+          <div class="w-full h-[5px] bg-[#0f0c29] border border-black">
+            <div class="h-full transition-all duration-1000" style="width:${pct}%;background:${isPos ? '#ff2a75' : '#00d4ff'}"></div>
+          </div>
+        `;
+        container.appendChild(div);
+      }
+
+      // Top 3
+      const top3List = document.getElementById('top3-list');
+      top3List.innerHTML = '';
+      for (let i = 1; i < Math.min(4, matches.length); i++) {
+        const m = matches[i];
+        const span = document.createElement('span');
+        span.className = 'bg-[#1a1a3e] border-2 border-black px-4 py-2 text-sm font-mono shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-[#ccc]';
+        span.textContent = `#${i + 1} ${m.name}`;
+        span.title = m.description || '';
+        top3List.appendChild(span);
+      }
+    }
+
+    // ==============================
+    // 7. PAGE TRANSITIONS
+    // ==============================
+    document.getElementById('btn-start').addEventListener('click', async () => {
+      document.getElementById('page-home').classList.remove('active');
+      document.getElementById('page-quiz').classList.add('active');
+      if (state.questions.length === 0) await loadData();
+    });
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = null;
+      state.currentIdx = 0;
+      state.scores = { econ: 0, diplomatic: 0, state: 0, society: 0, tech: 0 };
+      state.answered = {};
+      document.getElementById('page-results').classList.remove('active');
+      document.getElementById('page-home').classList.add('active');
+    });
+
+    // ==============================
+    // 8. INIT
+    // ==============================
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('page-home').classList.add('active');
+      // Preload data
+      loadData();
+    });
+  </script>
+</body>
+</html>
