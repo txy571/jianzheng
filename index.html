@@ -8,14 +8,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0f0c29; color: #fff; overflow-x: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: #000000; color: #fff; overflow-x: hidden; font-family: 'Segoe UI', system-ui, sans-serif; }
     .page { position: fixed; inset: 0; display: none; z-index: 10; flex-direction: column; opacity: 0; transition: opacity 0.4s ease; }
     .page.active { display: flex; opacity: 1; }
     #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-    #scan-overlay { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.08; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.4) 2px, rgba(0,0,0,0.4) 4px); }
+    #scan-overlay { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.06; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.15) 2px, rgba(255,255,255,0.15) 4px); }
 
     /* Glitch */
-    @keyframes glitch { 0% { transform: translate(0); text-shadow: none; } 20% { transform: translate(-2px, 2px); text-shadow: 3px 0 #ff2a75, -3px 0 #00d4ff; } 40% { transform: translate(2px, -1px); text-shadow: -3px 0 #ff2a75, 3px 0 #00d4ff; } 60% { transform: translate(-1px, 1px); text-shadow: 2px 0 #39ff14, -2px 0 #ff0040; } 80% { transform: translate(1px, -2px); text-shadow: -2px 0 #ff2a75, 2px 0 #00d4ff; } 100% { transform: translate(0); text-shadow: none; } }
+    @keyframes glitch { 0% { transform: translate(0); text-shadow: none; } 20% { transform: translate(-2px, 2px); text-shadow: 3px 0 #e60000, -3px 0 #ffffff; } 40% { transform: translate(2px, -1px); text-shadow: -3px 0 #e60000, 3px 0 #ffffff; } 60% { transform: translate(-1px, 1px); text-shadow: 2px 0 #ffffff, -2px 0 #e60000; } 80% { transform: translate(1px, -2px); text-shadow: -2px 0 #e60000, 2px 0 #ffffff; } 100% { transform: translate(0); text-shadow: none; } }
     .glitch { animation: glitch 0.3s ease; }
 
     /* Fault transitions */
@@ -28,11 +28,11 @@
     .likert-btn { @apply text-white font-bold py-3 px-2 border-2 border-black text-sm shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all duration-150 hover:-translate-y-0.5 hover:-translate-x-0.5 active:translate-y-0.5 active:translate-x-0.5 active:shadow-none; }
 
     /* Pulse glow for progress */
-    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 5px #ffd700; } 50% { box-shadow: 0 0 20px #ffd700, 0 0 40px #ffd70055; } }
+    @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 5px #e60000; } 50% { box-shadow: 0 0 20px #e60000, 0 0 40px #e6000055; } }
     .pulse-glow { animation: pulseGlow 2s ease-in-out infinite; }
 
     /* Typewriter cursor */
-    .typewriter::after { content: '|'; animation: blink 1s step-end infinite; color: #ff2a75; }
+    .typewriter::after { content: '|'; animation: blink 1s step-end infinite; color: #e60000; }
     @keyframes blink { 50% { opacity: 0; } }
 
     /* Scan line flicker on home */
@@ -41,8 +41,8 @@
 
     /* Scrollbar */
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f0c29; }
-    ::-webkit-scrollbar-thumb { background: #ff2a75; border: 1px solid #000; }
+    ::-webkit-scrollbar-track { background: #000000; }
+    ::-webkit-scrollbar-thumb { background: #e60000; border: 1px solid #000; }
   </style>
 </head>
 <body>
@@ -54,27 +54,27 @@
   <div id="page-home" class="page active flicker">
     <div class="relative z-10 flex-1 flex flex-col items-center justify-center px-6 text-center">
       <div class="relative inline-block mb-4">
-        <div class="absolute -inset-2 bg-gradient-to-r from-[#ff2a75] to-[#00d4ff] opacity-30 blur-xl"></div>
+        <div class="absolute -inset-2 bg-gradient-to-r from-[#e60000] to-[#ffffff] opacity-30 blur-xl"></div>
         <h1 id="glitch-title" class="relative text-6xl md:text-8xl font-black tracking-tighter leading-none"
             style="text-shadow: 3px 3px 0 #000;" data-text="意识形态测试">
           意识形态测试
         </h1>
       </div>
-      <div class="w-24 h-1 bg-[#ff2a75] mb-6"></div>
-      <p class="text-lg md:text-xl text-[#8888aa] mb-2 font-mono tracking-wider">
+      <div class="w-24 h-1 bg-[#e60000] mb-6"></div>
+      <p class="text-lg md:text-xl text-[#999999] mb-2 font-mono tracking-wider">
         100 题 · 5 维坐标 · 精准政治光谱定位
       </p>
-      <p class="text-sm text-[#666688] mb-10 font-mono">
+      <p class="text-sm text-[#666666] mb-10 font-mono">
         经济 · 外交 · 国家机构 · 社会文化 · 科技
       </p>
       <button id="btn-start"
-        class="bg-[#ff2a75] text-white text-2xl font-black py-4 px-14 border-[3px] border-black
+        class="bg-[#e60000] text-white text-2xl font-black py-4 px-14 border-[3px] border-black
                shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]
                hover:-translate-y-1 hover:-translate-x-1 transition-all duration-200
                active:translate-y-1 active:translate-x-1 active:shadow-none tracking-wider">
         开 始 测 试
       </button>
-      <p class="mt-10 text-xs text-[#555577] max-w-md font-mono leading-relaxed">
+      <p class="mt-10 text-xs text-[#555555] max-w-md font-mono leading-relaxed">
         本测试包含可能具有冒犯性的政治观点表述。<br>
         请根据你的「应然」判断作答，而非「实然」现状。
       </p>
@@ -85,32 +85,32 @@
   <div id="page-quiz" class="page">
     <div class="relative z-10 w-full pt-6 px-6 md:px-10">
       <div class="max-w-4xl mx-auto">
-        <div class="flex justify-between text-sm text-[#8888aa] font-mono mb-2">
+        <div class="flex justify-between text-sm text-[#999999] font-mono mb-2">
           <span id="progress-label">1 / <span id="total-q-label">145</span></span>
           <span id="progress-pct">0%</span>
         </div>
-        <div class="w-full h-[6px] bg-[#1a1a3e] border-2 border-black">
-          <div id="progress-bar" class="h-full bg-[#ffd700] transition-all duration-300 pulse-glow" style="width:0%"></div>
+        <div class="w-full h-[6px] bg-[#1c1c1c] border-2 border-black">
+          <div id="progress-bar" class="h-full bg-[#e60000] transition-all duration-300 pulse-glow" style="width:0%"></div>
         </div>
       </div>
     </div>
 
     <div class="relative z-10 flex-1 flex items-center justify-center px-6 py-6">
       <div class="w-full max-w-3xl">
-        <div id="question-card" class="bg-[#1a1a3e] border-[3px] border-black p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div id="question-card" class="bg-[#1c1c1c] border-[3px] border-black p-8 md:p-12 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div class="flex justify-between items-center mb-6">
-            <span id="q-number" class="text-[#ff2a75] font-mono text-sm font-bold">01 / 145</span>
-            <span id="q-axis" class="text-[#8888aa] font-mono text-xs border border-[#8888aa] px-2 py-1">经济轴</span>
+            <span id="q-number" class="text-[#e60000] font-mono text-sm font-bold">01 / 145</span>
+            <span id="q-axis" class="text-[#999999] font-mono text-xs border border-[#999999] px-2 py-1">经济轴</span>
           </div>
           <p id="q-text" class="text-xl md:text-2xl font-bold leading-relaxed mb-8 min-h-[80px]">
             加载题目中...
           </p>
           <div class="grid grid-cols-5 gap-2 md:gap-3" id="likert-buttons">
-            <button class="likert-btn bg-[#ff0040] hover:bg-[#d40035]" data-value="1">非常同意</button>
-            <button class="likert-btn bg-[#ff6640] hover:bg-[#d45535]" data-value="0.5">同意</button>
-            <button class="likert-btn bg-[#666688] hover:bg-[#555577]" data-value="0">中立</button>
-            <button class="likert-btn bg-[#40aaff] hover:bg-[#3590d5]" data-value="-0.5">不同意</button>
-            <button class="likert-btn bg-[#0040ff] hover:bg-[#0035d5]" data-value="-1">非常不同意</button>
+            <button class="likert-btn bg-[#e60000] hover:bg-[#cc0000]" data-value="1">非常同意</button>
+            <button class="likert-btn bg-[#cc3333] hover:bg-[#aa2222]" data-value="0.5">同意</button>
+            <button class="likert-btn bg-[#666666] hover:bg-[#555555]" data-value="0">中立</button>
+            <button class="likert-btn bg-[#444444] hover:bg-[#333333]" data-value="-0.5">不同意</button>
+            <button class="likert-btn bg-[#222222] hover:bg-[#111111]" data-value="-1">非常不同意</button>
           </div>
         </div>
       </div>
@@ -118,12 +118,12 @@
 
     <div class="relative z-10 w-full pb-6 px-6 md:px-10">
       <div class="max-w-3xl mx-auto flex justify-between">
-        <button id="btn-prev" class="font-mono text-[#8888aa] hover:text-white transition-colors px-4 py-2 border border-[#8888aa] text-sm"
+        <button id="btn-prev" class="font-mono text-[#999999] hover:text-white transition-colors px-4 py-2 border border-[#999999] text-sm"
                 style="visibility:hidden">
           ← 上一题
         </button>
         <button id="btn-next"
-          class="font-mono text-white bg-[#00d4ff] px-6 py-2 border-2 border-black text-sm font-bold
+          class="font-mono text-white bg-[#e60000] px-6 py-2 border-2 border-black text-sm font-bold
                  shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)]
                  hover:-translate-y-0.5 hover:-translate-x-0.5 transition-all active:translate-y-0.5 active:translate-x-0.5 active:shadow-none">
           下一题 →
@@ -136,18 +136,18 @@
   <div id="page-results" class="page" style="overflow-y:auto">
     <div class="relative z-10 w-full max-w-5xl mx-auto px-6 py-10">
       <h2 class="text-4xl md:text-5xl font-black text-center mb-2">你的政治坐标</h2>
-      <p class="text-center text-[#8888aa] font-mono text-sm mb-8">5 维政治光谱分析报告</p>
+      <p class="text-center text-[#999999] font-mono text-sm mb-8">5 维政治光谱分析报告</p>
 
       <!-- Radar chart -->
-      <div class="bg-[#1a1a3e] border-[3px] border-black p-4 md:p-8 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      <div class="bg-[#1c1c1c] border-[3px] border-black p-4 md:p-8 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <canvas id="radar-chart" class="max-h-[450px] w-full"></canvas>
       </div>
 
       <!-- Best match -->
-      <div id="match-card" class="bg-[#1a1a3e] border-[3px] border-black p-8 mb-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center">
-        <p class="text-sm font-mono text-[#8888aa] mb-2 tracking-widest">▎最佳匹配 ▎</p>
-        <h3 id="match-name" class="text-3xl md:text-5xl font-black text-[#ff2a75] mb-1 glitch-ready"></h3>
-        <p id="match-name-en" class="text-lg font-mono text-[#00d4ff] mb-4 italic"></p>
+      <div id="match-card" class="bg-[#1c1c1c] border-[3px] border-black p-8 mb-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center">
+        <p class="text-sm font-mono text-[#999999] mb-2 tracking-widest">▎最佳匹配 ▎</p>
+        <h3 id="match-name" class="text-3xl md:text-5xl font-black text-[#e60000] mb-1 glitch-ready"></h3>
+        <p id="match-name-en" class="text-lg font-mono text-[#ffffff] mb-4 italic"></p>
         <p id="match-desc" class="text-sm md:text-base text-gray-300 max-w-2xl mx-auto leading-relaxed"></p>
       </div>
 
@@ -159,14 +159,14 @@
 
       <!-- Top 3 -->
       <div id="top3" class="text-center mb-8">
-        <h4 class="text-sm font-mono text-[#8888aa] mb-3 tracking-widest">▎其他接近匹配 ▎</h4>
+        <h4 class="text-sm font-mono text-[#999999] mb-3 tracking-widest">▎其他接近匹配 ▎</h4>
         <div class="flex flex-wrap justify-center gap-3" id="top3-list"></div>
       </div>
 
       <!-- Restart -->
       <div class="text-center pb-10">
         <button id="btn-restart"
-          class="bg-[#ffd700] text-black font-black py-3 px-10 border-[3px] border-black text-lg
+          class="bg-[#e60000] text-white font-black py-3 px-10 border-[3px] border-black text-lg
                  shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] hover:shadow-[9px_9px_0px_0px_rgba(0,0,0,1)]
                  hover:-translate-y-1 hover:-translate-x-1 transition-all active:translate-y-1 active:translate-x-1 active:shadow-none">
           重新测试
@@ -217,8 +217,8 @@
     function drawBg() {
       ctx.clearRect(0, 0, W, H);
       const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
-      grad.addColorStop(0, '#17103a');
-      grad.addColorStop(1, '#0f0c29');
+      grad.addColorStop(0, '#1c0000');
+      grad.addColorStop(1, '#000000');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, H);
 
@@ -334,9 +334,9 @@
       document.querySelectorAll('.likert-btn').forEach(btn => {
         const v = parseFloat(btn.dataset.value);
         btn.classList.toggle('ring-2', v === prevVal);
-        btn.classList.toggle('ring-[#ffd700]', v === prevVal);
+        btn.classList.toggle('ring-[#e60000]', v === prevVal);
         btn.classList.toggle('ring-offset-2', v === prevVal);
-        btn.classList.toggle('ring-offset-[#1a1a3e]', v === prevVal);
+        btn.classList.toggle('ring-offset-[#1c1c1c]', v === prevVal);
       });
 
       // Nav visibility
@@ -454,10 +454,10 @@
           datasets: [{
             label: '你的政治坐标',
             data: AXES.map(a => norm[a]),
-            backgroundColor: 'rgba(255,42,117,0.12)',
-            borderColor: '#ff2a75',
+            backgroundColor: 'rgba(230,0,0,0.12)',
+            borderColor: '#e60000',
             borderWidth: 3,
-            pointBackgroundColor: '#ff2a75',
+            pointBackgroundColor: '#e60000',
             pointBorderColor: '#fff',
             pointBorderWidth: 2,
             pointRadius: 5,
@@ -471,7 +471,7 @@
           scales: {
             r: {
               min: -100, max: 100,
-              ticks: { stepSize: 50, color: '#8888aa', backdropColor: 'transparent', font: { family: 'monospace', size: 10 } },
+              ticks: { stepSize: 50, color: '#999999', backdropColor: 'transparent', font: { family: 'monospace', size: 10 } },
               grid: { color: 'rgba(136,136,170,0.2)' },
               angleLines: { color: 'rgba(136,136,170,0.2)' },
               pointLabels: { color: '#fff', font: { family: 'monospace', size: 11, weight: 'bold' } }
@@ -534,10 +534,10 @@
       const triggered = findSpecials(norm);
       if (triggered.length > 0) {
         specialsArea.innerHTML = `
-          <h4 class="text-sm font-mono text-[#8888aa] mb-3 tracking-widest text-center">▎特质标签 ▎</h4>
+          <h4 class="text-sm font-mono text-[#999999] mb-3 tracking-widest text-center">▎特质标签 ▎</h4>
           <div class="flex flex-wrap justify-center gap-3">${triggered.map(s =>
-            `<div class="bg-[#1a1a3e] border-2 border-black px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" title="${s.desc}">
-              <span class="text-[#ffd700] font-bold text-sm">${s.name}</span>
+            `<div class="bg-[#1c1c1c] border-2 border-black px-4 py-2 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]" title="${s.desc}">
+              <span class="text-[#e60000] font-bold text-sm">${s.name}</span>
             </div>`
           ).join('')}</div>
         `;
@@ -559,17 +559,17 @@
         const val = norm[key];
         const pct = (val + 100) / 2;
         const isHi = val >= 0;
-        const barColor = isHi ? '#ff2a75' : '#00d4ff';
-        const valColor = isHi ? '#ff2a75' : '#00d4ff';
+        const barColor = isHi ? '#e60000' : '#444444';
+        const valColor = isHi ? '#e60000' : '#cccccc';
         const div = document.createElement('div');
-        div.className = 'bg-[#1a1a3e] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
+        div.className = 'bg-[#1c1c1c] border-[3px] border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]';
         div.innerHTML = `
           <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-mono text-[#555577]">${info.lo}</span>
-            <span class="text-xs font-mono text-[#8888aa] font-bold tracking-wider">${info.label}</span>
-            <span class="text-xs font-mono text-[#555577]">${info.hi}</span>
+            <span class="text-xs font-mono text-[#555555]">${info.lo}</span>
+            <span class="text-xs font-mono text-[#999999] font-bold tracking-wider">${info.label}</span>
+            <span class="text-xs font-mono text-[#555555]">${info.hi}</span>
           </div>
-          <div class="relative w-full h-3 bg-[#0f0c29] border border-black overflow-hidden">
+          <div class="relative w-full h-3 bg-[#000000] border border-black overflow-hidden">
             <div class="absolute top-0 h-full transition-all duration-1000"
                  style="left:0;width:${pct}%;background:${barColor};border-right:2px solid #fff;"></div>
             <div class="absolute inset-0 flex items-center justify-center">
@@ -578,7 +578,7 @@
               </span>
             </div>
           </div>
-          <div class="flex justify-between text-[10px] font-mono text-[#555577] mt-1">
+          <div class="flex justify-between text-[10px] font-mono text-[#555555] mt-1">
             <span>0</span><span>50</span><span>100</span>
           </div>
         `;
@@ -591,7 +591,7 @@
       for (let i = 1; i < Math.min(4, matches.length); i++) {
         const m = matches[i];
         const span = document.createElement('span');
-        span.className = 'bg-[#1a1a3e] border-2 border-black px-4 py-2 text-sm font-mono shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-[#ccc]';
+        span.className = 'bg-[#1c1c1c] border-2 border-black px-4 py-2 text-sm font-mono shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] text-[#ccc]';
         span.textContent = `#${i + 1} ${m.name}`;
         span.title = m.description || '';
         top3List.appendChild(span);
